@@ -3,6 +3,8 @@ from tkinter import ttk
 from Config.sets import bakcgorund, sidebar, accent, text
 from Módulos.clientes import mostrar_clientes
 from Módulos.menu_inicio import mostrar_dashboard
+from Módulos.pedidos import mostrar_pedidos
+from Módulos.soporte import mostrar_soporte
 
 class ShopEasyCRM:
     def __init__(self, root):
@@ -63,12 +65,18 @@ class ShopEasyCRM:
         mostrar_dashboard(self.content_area)
 
     def mostrar_clientes(self):
-        self.clear_content()
+        self.limpiar_contenido()
         mostrar_clientes(self.content_area)
 
     # placeholders para el resto
-    def show_orders(self): self.limpiar_contenido(); tk.Label(self.content_area, text="Gestión de Pedidos", font=("Arial", 18), bg="white").pack()
-    def show_support(self): self.limpiar_contenido(); tk.Label(self.content_area, text="Tickets de Soporte", font=("Arial", 18), bg="white").pack()
+    def show_orders(self): 
+        self.limpiar_contenido()
+        mostrar_pedidos(self.content_area)
+        
+    def show_support(self):
+        self.limpiar_contenido()
+        mostrar_soporte(self.content_area)
+        
     def show_marketing(self): self.limpiar_contenido(); tk.Label(self.content_area, text="Campañas de Marketing", font=("Arial", 18), bg="white").pack()
     def show_reports(self): self.limpiar_contenido(); tk.Label(self.content_area, text="Análisis de Datos", font=("Arial", 18), bg="white").pack()
 
