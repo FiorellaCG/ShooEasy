@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from Config.sets import get_connection
+from Módulos.eliminacionproveedor import eliminar_proveedor
 
 # ==========================================
 # LÓGICA DE ACCESO A DATOS (Data Access Layer)
@@ -69,6 +70,9 @@ class VistaMarketing(tk.Frame):
 
         tk.Button(frame_acciones, text="🔄 Recargar", command=self.cargar_datos, font=("Segoe UI", 10), bg="#ecf0f1", relief="flat", padx=10, cursor="hand2").pack(side="left", padx=5)
         tk.Button(frame_acciones, text="➕ Nuevo Proveedor", command=self.abrir_modal_nuevo_proveedor, font=("Segoe UI", 10, "bold"), bg="#3498db", fg="white", relief="flat", padx=10, cursor="hand2").pack(side="left", padx=15)
+        
+        # Botón de Eliminación enganchado al Treeview
+        tk.Button(frame_acciones, text="🗑️ Eliminar Proveedor", command=self.borrar_seleccionado, font=("Segoe UI", 10, "bold"), bg="#e74c3c", fg="white", relief="flat", padx=10, cursor="hand2").pack(side="right", padx=15)
 
         # Configuración Visual del Treeview
         style = ttk.Style()
@@ -111,6 +115,20 @@ class VistaMarketing(tk.Frame):
             for i, p in enumerate(proveedores):
                 tag = "par" if i % 2 == 0 else "impar"
                 self.tabla.insert("", "end", values=p, tags=(tag,))
+
+    def borrar_seleccionado(self):
+        seleccion = self.tabla.selection()
+        if not seleccion:
+            messagebox.showwarning("Atención", "Por favor selecciona primero un proveedor de la tabla usando el click de tu mouse.")
+            return
+            
+        valores = self.tabla.item(seleccion[0])["values"]
+        id_prov, nombre = valores[0], valores[1]
+        
+        if messagebox.askyesno("Confirmar Eliminación", f"¿Estás seguro de que deseas eliminar permanentemente a '{nombre}'?"):
+            if eliminar_proveedor(id_prov):
+                messagebox.showinfo("Éxito", "Proveedor eliminado correctamente de la lista.")
+                self.cargar_datos()
 
     def abrir_modal_nuevo_proveedor(self):
         modal = tk.Toplevel(self)

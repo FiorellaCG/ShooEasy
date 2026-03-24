@@ -7,6 +7,8 @@ from Módulos.pedidos import mostrar_pedidos
 from Módulos.soporte import mostrar_soporte
 from Módulos.marketing import mostrar_marketing
 from Módulos.reportes import mostrar_reportes
+from Módulos.login import LoginWindow
+from Módulos.cliente import mostrar_cliente
 
 class ShopEasyCRM:
     def __init__(self, root):
@@ -87,7 +89,29 @@ class ShopEasyCRM:
         self.limpiar_contenido()
         mostrar_reportes(self.content_area)
 
-if __name__ == "__main__":
+def iniciar_aplicacion():
     root = tk.Tk()
-    app = ShopEasyCRM(root)
+    root.title("Gestión de Clientes - CRM")
+    root.geometry("1000x600")
+    
+    # Manejador de enrutamiento
+    def on_login_success(user_data):
+        id_rol = user_data[2]
+        
+        # Admin(1), Soporte(3) -> Entran al CRM Full
+        if id_rol in (1, 3):
+            app = ShopEasyCRM(root)
+        # Cliente(2) -> Vista reducida
+        elif id_rol == 2:
+            mostrar_cliente(root, user_data[0])
+        else:
+            # Fallback a Rol de bajo nivel o no identificado con control explícito
+            tk.Label(root, text="Rol denegado o no identificado.", font=("Segoe UI", 20)).pack()
+            
+    # La aplicación en su estado primordial monta el Auth
+    LoginWindow(root, on_login_success)
+    
     root.mainloop()
+
+if __name__ == "__main__":
+    iniciar_aplicacion()

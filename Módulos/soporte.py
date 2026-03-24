@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from Config.sets import get_connection
+from Módulos.crudticket import eliminar_ticket, actualizar_ticket
 
 # ==========================================
 # LÓGICA DE ACCESO A DATOS (Data Access Layer)
@@ -125,6 +126,9 @@ class VistaSoporte(tk.Frame):
         tk.Button(frame_acciones, text="🔄 Recargar", command=self.cargar_datos, font=("Segoe UI", 10), bg="#ecf0f1", relief="flat", padx=10, cursor="hand2").pack(side="left", padx=5)
         
         tk.Button(frame_acciones, text="➕ Nuevo Ticket", command=self.abrir_modal_nuevo_ticket, font=("Segoe UI", 10, "bold"), bg="#3498db", fg="white", relief="flat", padx=10, cursor="hand2").pack(side="left", padx=15)
+        
+        tk.Button(frame_acciones, text="🗑️ Eliminar Ticket", command=self.borrar_seleccionado, font=("Segoe UI", 10, "bold"), bg="#e74c3c", fg="white", relief="flat", padx=10, cursor="hand2").pack(side="right", padx=15)
+        tk.Button(frame_acciones, text="📝 Actualizar Estado", command=self.actualizar_seleccionado, font=("Segoe UI", 10, "bold"), bg="#f39c12", fg="white", relief="flat", padx=10, cursor="hand2").pack(side="right", padx=10)
 
         # Treeview Módulo
         style = ttk.Style()
@@ -179,6 +183,60 @@ class VistaSoporte(tk.Frame):
                 
                 # Pintará automáticamente según el estado
                 self.tabla.insert("", "end", values=(id_ticket, cliente, articulo, descripcion, str_fecha, estado, prioridad), tags=(estado,))
+
+    def borrar_seleccionado(self):
+        seleccion = self.tabla.selection()
+        if not seleccion:
+            messagebox.showwarning("Atención", "Por favor selecciona un ticket de la tabla primero.")
+            return
+            
+        valores = self.tabla.item(seleccion[0])["values"]
+        id_tk, desc = valores[0], valores[3]
+        
+        if messagebox.askyesno("Confirmar", f"¿Deseas eliminar permanentemente el Ticket #{id_tk}?"):
+            if eliminar_ticket(id_tk):
+                messagebox.showinfo("Éxito", "Ticket eliminado correctamente.")
+                self.cargar_datos()
+
+    def actualizar_seleccionado(self):
+        seleccion = self.tabla.selection()
+        if not seleccion:
+            messagebox.showwarning("Atención", "Por favor selecciona un ticket de la tabla primero.")
+            return
+            
+        valores = self.tabla.item(seleccion[0])["values"]
+        id_tk, estado_actual = valores[0], valores[5]
+        
+        modal_act = tk.Toplevel(self)
+        modal_act.title(f"Avanzar Estado (Ticket #{id_tk})")
+        modal_act.geometry("300x200")
+        modal_act.configure(bg="white")
+        modal_act.grab_set() 
+        modal_act.resizable(False, False)
+        
+        modal_act.update_idletasks()
+        x = (modal_act.winfo_screenwidth() // 2) - 150
+        y = (modal_act.winfo_screenheight() // 2) - 100
+        modal_act.geometry(f"+{x}+{y}")
+        
+        tk.Label(modal_act, text="Cambiar Estado", font=("Segoe UI", 14, "bold"), bg="white").pack(pady=15)
+        
+        var_estado = tk.StringVar(value=estado_actual)
+        cmb_estado = ttk.Combobox(modal_act, textvariable=var_estado, values=["Abierto", "En proceso", "Cerrado"], state="readonly", font=("Segoe UI", 12))
+        cmb_estado.pack(pady=10)
+        
+        def guardar_cambio():
+            nuevo_est = var_estado.get()
+            if nuevo_est == estado_actual:
+                modal_act.destroy()
+                return
+                
+            if actualizar_ticket(id_tk, nuevo_est):
+                messagebox.showinfo("Éxito", "El ticket fue actualizado exitosamente.", parent=modal_act)
+                modal_act.destroy()
+                self.cargar_datos()
+                
+        tk.Button(modal_act, text="Completar Actualización", command=guardar_cambio, font=("Segoe UI", 10, "bold"), bg="#27ae60", fg="white", relief="flat", cursor="hand2", pady=5).pack(fill="x", padx=30, pady=10)
 
     def abrir_modal_nuevo_ticket(self):
         modal = tk.Toplevel(self)
