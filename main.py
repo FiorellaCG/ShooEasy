@@ -2,9 +2,11 @@ import tkinter as tk
 from tkinter import ttk
 from Config.sets import bakcgorund, sidebar, accent, text
 from Módulos.clientes import mostrar_clientes
-from Módulos.menu_inicio import mostrar_dashboard
+from Módulos.dashboard import mostrar_dashboard
 from Módulos.pedidos import mostrar_pedidos
 from Módulos.soporte import mostrar_soporte
+from Módulos.marketing import mostrar_marketing
+from Módulos.reportes import mostrar_reportes
 
 class ShopEasyCRM:
     def __init__(self, root):
@@ -77,8 +79,13 @@ class ShopEasyCRM:
         self.limpiar_contenido()
         mostrar_soporte(self.content_area)
         
-    def show_marketing(self): self.limpiar_contenido(); tk.Label(self.content_area, text="Campañas de Marketing", font=("Arial", 18), bg="white").pack()
-    def show_reports(self): self.limpiar_contenido(); tk.Label(self.content_area, text="Análisis de Datos", font=("Arial", 18), bg="white").pack()
+    def show_marketing(self):
+        self.limpiar_contenido()
+        mostrar_marketing(self.content_area)
+        
+    def show_reports(self):
+        self.limpiar_contenido()
+        mostrar_reportes(self.content_area)
 
 if __name__ == "__main__":
     root = tk.Tk()
