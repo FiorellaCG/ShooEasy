@@ -11,8 +11,9 @@ from Módulos.login import LoginWindow
 from Módulos.cliente import mostrar_cliente
 
 class ShopEasyCRM:
-    def __init__(self, root):
+    def __init__(self, root, on_logout=None):
         self.root = root
+        self.on_logout = on_logout
         self.root.title("ShopEasy CRM - Ecommerce Solution")
         self.root.geometry("1000x600")
         
@@ -64,13 +65,18 @@ class ShopEasyCRM:
         for widget in self.content_area.winfo_children():
             widget.destroy()
 
+    def logout(self):
+        self.main_container.destroy()
+        if self.on_logout:
+            self.on_logout()
+
     def mostrar_dashboard(self):
         self.limpiar_contenido()
-        mostrar_dashboard(self.content_area)
+        mostrar_dashboard(self.content_area, on_back=self.logout)
 
     def mostrar_clientes(self):
         self.limpiar_contenido()
-        mostrar_clientes(self.content_area)
+        mostrar_clientes(self.content_area, on_back=self.mostrar_dashboard)
 
     # placeholders para el resto
     def show_orders(self): 
@@ -98,9 +104,12 @@ def iniciar_aplicacion():
     def on_login_success(user_data):
         id_rol = user_data[2]
         
+        def do_logout():
+            LoginWindow(root, on_login_success)
+
         # Admin(1), Soporte(3) -> Entran al CRM Full
         if id_rol in (1, 3):
-            app = ShopEasyCRM(root)
+            app = ShopEasyCRM(root, do_logout)
         # Cliente(2) -> Vista reducida
         elif id_rol == 2:
             mostrar_cliente(root, user_data[0])

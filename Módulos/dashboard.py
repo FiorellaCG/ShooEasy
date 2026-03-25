@@ -75,8 +75,9 @@ class VistaDashboard(tk.Frame):
     """
     Vista principal que se muestra al iniciar el sistema.
     """
-    def __init__(self, parent):
+    def __init__(self, parent, on_back=None):
         super().__init__(parent, bg="white")
+        self.on_back = on_back
         self.pack(fill="both", expand=True)
         self.crear_widgets()
         self.cargar_datos()
@@ -88,6 +89,9 @@ class VistaDashboard(tk.Frame):
         header_frame = tk.Frame(self, bg="white")
         header_frame.pack(fill="x", pady=(0, 20))
         
+        if self.on_back:
+            tk.Button(header_frame, text="⬅️ Volver", command=self.on_back, font=("Segoe UI", 10), bg="#ecf0f1", relief="flat", padx=10, cursor="hand2").pack(side="left", padx=(0, 15))
+
         tk.Label(header_frame, text="Dashboard Principal", font=("Segoe UI", 22, "bold"), bg="white", fg="#2c3e50").pack(side="left")
         tk.Button(header_frame, text="🔄 Actualizar Todo", command=self.cargar_datos, font=("Segoe UI", 10), bg="#ecf0f1", relief="flat", padx=15, cursor="hand2").pack(side="right")
 
@@ -186,5 +190,5 @@ class VistaDashboard(tk.Frame):
                 self.tabla.insert("", "end", values=(p[0], p[1], str_fecha, str_total, estado), tags=(estado,))
 
 # Wrapper de Inicialización
-def mostrar_dashboard(contenedor):
-    VistaDashboard(contenedor)
+def mostrar_dashboard(contenedor, on_back=None):
+    VistaDashboard(contenedor, on_back)

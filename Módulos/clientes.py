@@ -121,16 +121,23 @@ def crear_cliente(nombre, ape1, ape2, correo, tel, fec_nac, login, pw, id_rol, a
 # ==========================================
 
 class VistaClientes(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, on_back=None):
         super().__init__(parent, bg="white")
+        self.on_back = on_back
         self.pack(fill="both", expand=True)
 
         self.crear_widgets()
         self.cargar_datos()
 
     def crear_widgets(self):
-        # Título
-        tk.Label(self, text="Base de Datos de Clientes", font=("Segoe UI", 18, "bold"), bg="white").pack(anchor="w", pady=(0, 15))
+        # Título y Botón Volver
+        header_frame = tk.Frame(self, bg="white")
+        header_frame.pack(fill="x", pady=(0, 15))
+        
+        if self.on_back:
+            tk.Button(header_frame, text="⬅️ Volver", command=self.on_back, font=("Segoe UI", 10), bg="#ecf0f1", relief="flat", padx=10, cursor="hand2").pack(side="left", padx=(0, 15))
+
+        tk.Label(header_frame, text="Base de Datos de Clientes", font=("Segoe UI", 18, "bold"), bg="white").pack(side="left")
         
         # Frame botones
         frame_acciones = tk.Frame(self, bg="white")
@@ -307,5 +314,5 @@ class VistaClientes(tk.Frame):
 
 
 # Wrapper compatible para que siga funcionando con la estructura original de main.py
-def mostrar_clientes(contenedor):
-    VistaClientes(contenedor)
+def mostrar_clientes(contenedor, on_back=None):
+    VistaClientes(contenedor, on_back)
