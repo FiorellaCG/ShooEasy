@@ -105,6 +105,8 @@ def iniciar_aplicacion():
         id_rol = user_data[2]
         
         def do_logout():
+            for w in root.winfo_children():
+                w.destroy()
             LoginWindow(root, on_login_success)
 
         # Admin(1), Soporte(3) -> Entran al CRM Full
@@ -112,7 +114,7 @@ def iniciar_aplicacion():
             app = ShopEasyCRM(root, do_logout)
         # Cliente(2) -> Vista reducida
         elif id_rol == 2:
-            mostrar_cliente(root, user_data[0])
+            mostrar_cliente(root, user_data[0], on_back=do_logout)
         else:
             # Fallback a Rol de bajo nivel o no identificado con control explícito
             tk.Label(root, text="Rol denegado o no identificado.", font=("Segoe UI", 20)).pack()

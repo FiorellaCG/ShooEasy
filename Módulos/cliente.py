@@ -112,10 +112,11 @@ def agregar_al_carrito(producto):
 # ==========================================
 
 class VistaCatalogo(tk.Frame):
-    def __init__(self, root, id_usuario):
+    def __init__(self, root, id_usuario, on_back=None):
         super().__init__(root, bg="white")
         self.pack(fill="both", expand=True)
         self.id_usuario = id_usuario
+        self.on_back = on_back
         
         self.crear_widgets()
         self.cargar_datos()
@@ -124,6 +125,9 @@ class VistaCatalogo(tk.Frame):
         header_frame = tk.Frame(self, bg="white")
         header_frame.pack(fill="x", pady=20, padx=20)
         
+        if hasattr(self, 'on_back') and self.on_back:
+            tk.Button(header_frame, text="⬅️ Salir al Login", command=self.on_back, font=("Segoe UI", 10), bg="#e74c3c", fg="white", relief="flat", padx=10, cursor="hand2").pack(side="left", padx=(0, 15))
+            
         tk.Label(header_frame, text="Catálogo de Productos ShopEasy", font=("Segoe UI", 24, "bold"), bg="white", fg="#2c3e50").pack(side="left")
         
         btn_frame = tk.Frame(header_frame, bg="white")
@@ -141,7 +145,16 @@ class VistaCatalogo(tk.Frame):
         self.frame_productos = tk.Frame(self.canvas, bg="white")
         self.frame_productos.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         
-        self.canvas.create_window((0, 0), window=self.frame_productos, anchor="nw")
+        self.canvas.create_window((0, 0), window=self.frame_productos, anchor="nw", tags="frame_canvas")
+        
+        def on_canvas_resize(event):
+            canvas_width = event.width
+            self.frame_productos.update_idletasks()
+            frame_width = self.frame_productos.winfo_reqwidth()
+            x_offset = max(0, (canvas_width - frame_width) // 2)
+            self.canvas.coords("frame_canvas", x_offset, 0)
+            
+        self.canvas.bind("<Configure>", on_canvas_resize)
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         
         self.canvas.pack(side="left", fill="both", expand=True)
@@ -203,13 +216,13 @@ class VistaCatalogo(tk.Frame):
             
         modal = tk.Toplevel(self)
         modal.title("Orden de Compra")
-        modal.geometry("600x480")
+        modal.geometry("600x520")
         modal.configure(bg="white")
         modal.grab_set()
         
         modal.update_idletasks()
         x = (modal.winfo_screenwidth() // 2) - (600 // 2)
-        y = (modal.winfo_screenheight() // 2) - (480 // 2)
+        y = (modal.winfo_screenheight() // 2) - (520 // 2)
         modal.geometry(f"+{x}+{y}")
         
         tk.Label(modal, text="Resumen de Compra", font=("Segoe UI", 18, "bold"), bg="white", fg="#2c3e50").pack(pady=(15, 5))
@@ -217,8 +230,34 @@ class VistaCatalogo(tk.Frame):
         frame_tabla = tk.Frame(modal, bg="white", padx=20)
         frame_tabla.pack(fill="both", expand=True, pady=10)
         
+        frame_acciones = tk.Frame(frame_tabla, bg="white")
+        frame_acciones.pack(fill="x", pady=(0, 5))
+        
+        frame_tree = tk.Frame(frame_tabla, bg="white")
+        frame_tree.pack(fill="both", expand=True)
+
         columnas = ("prod", "precio", "cant", "sub")
-        tabla = ttk.Treeview(frame_tabla, columns=columnas, show="headings", height=8)
+        tabla = ttk.Treeview(frame_tree, columns=columnas, show="headings", height=8)
+        
+        def eliminar_seleccionado():
+            seleccion = tabla.selection()
+            if not seleccion:
+                messagebox.showwarning("Atención", "Selecciona un producto para eliminar.", parent=modal)
+                return
+            
+            item_vals = tabla.item(seleccion[0])['values']
+            nombre_prod = item_vals[0]
+            
+            global carrito_compras
+            for i, c in enumerate(carrito_compras):
+                if c["nombre"] == nombre_prod:
+                    del carrito_compras[i]
+                    break
+            
+            modal.destroy()
+            self.mostrar_carrito()
+            
+        tk.Button(frame_acciones, text="🗑️ Eliminar Seleccionado", command=eliminar_seleccionado, font=("Segoe UI", 9, "bold"), bg="#e74c3c", fg="white", relief="flat", cursor="hand2", padx=10).pack(side="right")
         
         tabla.heading("prod", text="Producto")
         tabla.heading("precio", text="Precio U.")
@@ -243,7 +282,7 @@ class VistaCatalogo(tk.Frame):
             
         tabla.pack(side="left", fill="both", expand=True)
         
-        scroll = ttk.Scrollbar(frame_tabla, orient="vertical", command=tabla.yview)
+        scroll = ttk.Scrollbar(frame_tree, orient="vertical", command=tabla.yview)
         tabla.configure(yscrollcommand=scroll.set)
         scroll.pack(side="right", fill="y")
         
@@ -255,8 +294,7 @@ class VistaCatalogo(tk.Frame):
         tk.Label(footer, text=f"₡ {total_total:,.2f}", font=("Segoe UI", 20, "bold"), bg="#f8f9fa", fg="#27ae60").pack(side="left", padx=10)
         
         tk.Button(footer, text="✅ Finalizar Compra", command=lambda: crear_pedido(self.id_usuario, total_total, modal, self.cargar_datos), font=("Segoe UI", 12, "bold"), bg="#e67e22", fg="white", relief="flat", cursor="hand2", padx=20).pack(side="right")
-        
 
 # Wrapper de Invocación
-def mostrar_cliente(contenedor, id_usuario):
-    VistaCatalogo(contenedor, id_usuario)
+def mostrar_cliente(contenedor, id_usuario, on_back=None):
+    VistaCatalogo(contenedor, id_usuario, on_back)
